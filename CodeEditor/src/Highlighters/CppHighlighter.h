@@ -7,26 +7,6 @@
 #include <QTextDocument>
 
 
-//struct ParenthesisInfo
-//{
-//	char character;
-//	int position;
-//};
-//
-//
-//class TextBlockData : public QTextBlockUserData
-//{
-//public:
-//	TextBlockData();
-//
-//	QVector<ParenthesisInfo*> parentheses();
-//	void insert(ParenthesisInfo* info);
-//
-//private:
-//	QVector<ParenthesisInfo*> m_parentheses;
-//};
-
-
 class CppHighlighter :
 	public BaseHighlighter
 {
@@ -34,7 +14,8 @@ class CppHighlighter :
 
 public:
 	CppHighlighter(QTextDocument* parent = nullptr);
-	const QVector<QPair<QString, QString>>* braces() const;
+	~CppHighlighter();
+	const QVector<QPair<QChar, QChar>>* braces() const override;
 
 protected:
 	void highlightBlock(const QString& text) override;
@@ -46,7 +27,7 @@ private:
 		QTextCharFormat format;
 	};
 
-	const QVector<QPair<QString, QString>>* m_braces;
+	const QVector<QPair<QChar, QChar>>* m_braces;
 	
 
 	QVector<HighlightingRule> highlightingRules;

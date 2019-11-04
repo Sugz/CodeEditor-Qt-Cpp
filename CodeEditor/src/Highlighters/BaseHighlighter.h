@@ -8,11 +8,11 @@ class BaseHighlighter
 	Q_OBJECT
 
 protected:
-	const QVector<QPair<QString, QString>>* m_braces;
+	const QVector<QPair<QChar, QChar>>* m_braces = 0;
 
 public:
 	BaseHighlighter(QTextDocument*parent);
 	~BaseHighlighter();
 
-	const QVector<QPair<QString, QString>>* braces() const;
+	virtual const QVector<QPair<QChar, QChar>>* braces() const = 0;
 };

@@ -7,10 +7,7 @@ BaseHighlighter::BaseHighlighter(QTextDocument*parent)
 
 BaseHighlighter::~BaseHighlighter()
 {
-
+	
 }
 
-const QVector<QPair<QString, QString>>* BaseHighlighter::braces() const
-{
-	return m_braces;
-}
+

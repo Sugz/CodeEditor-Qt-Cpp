@@ -1,33 +1,14 @@
 #include "CppHighlighter.h"
 
-//TextBlockData::TextBlockData() {}
-//
-//QVector<ParenthesisInfo*> TextBlockData::parentheses()
-//{
-//	return m_parentheses;
-//}
-//
-//void TextBlockData::insert(ParenthesisInfo* info)
-//{
-//	int i = 0;
-//	while (i < m_parentheses.size() &&
-//		info->position > m_parentheses.at(i)->position)
-//		++i;
-//
-//	m_parentheses.insert(i, info);
-//}
-
 
 CppHighlighter::CppHighlighter(QTextDocument* parent)
 	:BaseHighlighter(parent)
 {
-	m_braces = new const QVector<QPair<QString, QString>>{
-		{"(", ")"},
-		{"{", "}"},
-		{"[", "]"},
-		{"<", ">"},
-		{"\"", "\""},
-		{"'", "'"}
+	m_braces = new const QVector<QPair<QChar, QChar>>{
+		{'(', ')'},
+		{'{', '}'},
+		{'[', ']'},
+		{'<', '>'},
 	};
 
 
@@ -83,6 +64,13 @@ CppHighlighter::CppHighlighter(QTextDocument* parent)
 
 	commentStartExpression = QRegularExpression(QStringLiteral("/\\*"));
 	commentEndExpression = QRegularExpression(QStringLiteral("\\*/"));
+}
+
+
+CppHighlighter::~CppHighlighter()
+{
+	delete m_braces;
+	m_braces = nullptr;
 }
 
 
@@ -183,7 +171,7 @@ void CppHighlighter::highlightBlock(const QString& text)
 }
 
 
-const QVector<QPair<QString, QString>>* CppHighlighter::braces() const
+const QVector<QPair<QChar, QChar>>* CppHighlighter::braces() const
 {
 	return m_braces;
 }

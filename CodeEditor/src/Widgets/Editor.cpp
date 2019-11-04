@@ -11,7 +11,6 @@ Editor::Editor(QWidget* parent) : QTextEdit(parent)
 {
 	m_lineNumberArea = new LineNumberArea(this);
 	m_highlighter = nullptr;
-	//m_braces = new std::string("(){}[]<>\"\"\\'\\'");
 
 	this->verticalScrollBar()->setSingleStep(this->fontMetrics().height()); //TODO useless here (since font can change, place it in setFont())
 
@@ -25,10 +24,12 @@ Editor::Editor(QWidget* parent) : QTextEdit(parent)
 
 Editor::~Editor()
 {
+	delete m_highlighter;
 	delete m_lineNumberArea;
-	//delete m_braces;
+	
+	m_highlighter = nullptr;
 	m_lineNumberArea = nullptr;
-	//m_braces = NULL;
+	
 }
 
 
@@ -200,7 +201,7 @@ void Editor::onCursorPositionChanged()
 	QList<QTextEdit::ExtraSelection> extraSelections;
 	highlightCurrentLine(extraSelections);
 	//matchParentheses();
-	if (m_highlighter && m_highlighter->braces())
+	if (m_highlighter && m_highlighter->braces() != 0)
 		highlightBraces(extraSelections);
 
 	setExtraSelections(extraSelections);
@@ -233,12 +234,90 @@ void Editor::highlightBraces(QList<QTextEdit::ExtraSelection>& extraSelections)
 	if (currentChar.isNull() && prevChar.isNull())
 		return;
 
-	const QVector<QPair<QString, QString>>* braces = m_highlighter->braces();
+	const QVector<QPair<QChar, QChar>>* braces = m_highlighter->braces();
+	int direction, position = textCursor().position();
+	QChar brace, matchingBrace;
 
-	for (auto& pair : &braces)
+	for (auto& pair : *braces)
 	{
+		if (pair.first == currentChar)
+		{
+			direction = 1;
+			brace = currentChar;
+			matchingBrace = pair.second;
+		}
+		else if (pair.second == prevChar)
+		{
+			direction = -1;
+			brace = prevChar;
+			matchingBrace = pair.first;
+			position--;
+		}
+		else
+		{
+			continue;
+		}
 
+		// run through the text in the given direction and find the matching brace
+		int counter = 1;
+		QChar c;
+		while (counter != 0 &&
+			position > 0 &&
+			position < document()->characterCount() - 1)
+		{
+			// move position and get the char
+			position += direction;
+			c = document()->characterAt(position);
+
+			// check if there are other brace of the same type
+			if (c == brace)
+				++counter;
+			else if (c == matchingBrace)
+				--counter;
+		}
+
+		if (counter == 0)
+		{
+			QTextEdit::ExtraSelection selection;
+			QTextCharFormat format = selection.format;
+			format.setBackground(Qt::green);
+			selection.format = format;
+
+			QTextCursor::MoveOperation directionEnum =
+				direction < 0 ?
+				QTextCursor::MoveOperation::Left :
+				QTextCursor::MoveOperation::Right;
+
+			selection.cursor = textCursor();
+			selection.cursor.clearSelection();
+			selection.cursor.movePosition(
+				directionEnum,
+				QTextCursor::MoveMode::MoveAnchor,
+				std::abs(textCursor().position() - position)
+			);
+
+			selection.cursor.movePosition(
+				QTextCursor::MoveOperation::Right,
+				QTextCursor::MoveMode::KeepAnchor,
+				1
+			);
+
+			extraSelections.append(selection);
+
+			selection.cursor = textCursor();
+			selection.cursor.clearSelection();
+			selection.cursor.movePosition(
+				directionEnum,
+				QTextCursor::MoveMode::KeepAnchor,
+				1
+			);
+
+			extraSelections.append(selection);
+		}
+
+		break;
 	}
+
 }
 
 
@@ -252,206 +331,3 @@ QChar Editor::charUnderCursor(int offset) const
 	
 	return blockText[index];
 }
-
-
-//void Editor::matchParentheses()
-//{
-//	TextBlockData* data = static_cast<TextBlockData*>(textCursor().block().userData());
-//
-//	if (data) 
-//	{
-//		QVector<ParenthesisInfo*> infos = data->parentheses();
-//
-//		int pos = textCursor().block().position();
-//		for (int i = 0; i < infos.size(); ++i) 
-//		{
-//			ParenthesisInfo* info = infos.at(i);
-//
-//			// get the cursor position within the current textblock
-//			int curPos = textCursor().positionInBlock();
-//			
-//			// only check curPos if curPos - 1 isn't a brace
-//			if (info->position == curPos || info->position == curPos - 1)
-//			{
-//				int braceIndex = m_braces->find(info->character);
-//				const char* brace = &m_braces->at(braceIndex);
-//
-//				if (braceIndex != std::string::npos && info->character == *brace)
-//				{
-//					// check if index is pair or impair
-//					bool isPair = braceIndex % 2 == 0;
-//
-//					//get matching braces
-//					const char* matching = &m_braces->at(isPair ? braceIndex + 1 : braceIndex - 1);
-//
-//					if (isPair && matchLeftParenthesis(textCursor().block(), i + 1, 0, *brace, *matching))
-//						createParenthesisSelection(pos + info->position);
-//					else if (!isPair && matchRightParenthesis(textCursor().block(), i - 1, 0, *matching, *brace))
-//						createParenthesisSelection(pos + info->position);
-//				}
-//			}
-//
-//			
-//
-//
-//			/*if ((info->position == curPos || info->position == curPos - 1) 
-//				&& info->character == '(') 
-//			{
-//				if (matchLeftParenthesis(textCursor().block(), i + 1, 0))
-//					createParenthesisSelection(pos + info->position);
-//			}
-//			else if ((info->position == curPos || info->position == curPos - 1) && 
-//				info->character == ')') 
-//			{
-//				if (matchRightParenthesis(textCursor().block(), i - 1, 0))
-//					createParenthesisSelection(pos + info->position);
-//			}*/
-//		}
-//	}
-//}
-//
-//
-//bool Editor::matchLeftParenthesis(QTextBlock currentBlock, int i, int numLeftParentheses, const char& open, const char& close)
-//{
-//	TextBlockData* data = static_cast<TextBlockData*>(currentBlock.userData());
-//	QVector<ParenthesisInfo*> infos = data->parentheses();
-//
-//	int docPos = currentBlock.position();
-//	for (; i < infos.size(); ++i)
-//	{
-//		ParenthesisInfo* info = infos.at(i);
-//
-//		if (info->character == open) 
-//		{
-//			++numLeftParentheses;
-//			continue;
-//		}
-//
-//		if (info->character == close && numLeftParentheses == 0)
-//		{
-//			createParenthesisSelection(docPos + info->position);
-//			return true;
-//		}
-//		else
-//			--numLeftParentheses;
-//	}
-//
-//	currentBlock = currentBlock.next();
-//	if (currentBlock.isValid())
-//		return matchLeftParenthesis(currentBlock, 0, numLeftParentheses, open, close);
-//
-//	return false;
-//}
-//
-//
-//bool Editor::matchRightParenthesis(QTextBlock currentBlock, int i, int numRightParentheses, const char& open, const char& close)
-//{
-//	TextBlockData* data = static_cast<TextBlockData*>(currentBlock.userData());
-//	QVector<ParenthesisInfo*> parentheses = data->parentheses();
-//
-//	int docPos = currentBlock.position();
-//	for (; i > -1 && parentheses.size() > 0; --i)
-//	{
-//		ParenthesisInfo* info = parentheses.at(i);
-//		if (info->character == close) 
-//		{
-//			++numRightParentheses;
-//			continue;
-//		}
-//		if (info->character == open && numRightParentheses == 0)
-//		{
-//			createParenthesisSelection(docPos + info->position);
-//			return true;
-//		}
-//		else
-//			--numRightParentheses;
-//	}
-//
-//	currentBlock = currentBlock.previous();
-//	if (currentBlock.isValid())
-//		return matchRightParenthesis(currentBlock, 0, numRightParentheses, open, close);
-//
-//	return false;
-//}
-
-
-//bool Editor::matchLeftParenthesis(QTextBlock currentBlock, int i, int numLeftParentheses)
-//{
-//	TextBlockData* data = static_cast<TextBlockData*>(currentBlock.userData());
-//	QVector<ParenthesisInfo*> infos = data->parentheses();
-//
-//	int docPos = currentBlock.position();
-//	for (; i < infos.size(); ++i) 
-//	{
-//		ParenthesisInfo* info = infos.at(i);
-//
-//		if (info->character == '(') {
-//			++numLeftParentheses;
-//			continue;
-//		}
-//
-//		if (info->character == ')' && numLeftParentheses == 0) 
-//		{
-//			createParenthesisSelection(docPos + info->position);
-//			return true;
-//		}
-//		else
-//			--numLeftParentheses;
-//	}
-//
-//	currentBlock = currentBlock.next();
-//	if (currentBlock.isValid())
-//		return matchLeftParenthesis(currentBlock, 0, numLeftParentheses);
-//
-//	return false;
-//}
-//
-//
-//bool Editor::matchRightParenthesis(QTextBlock currentBlock, int i, int numRightParentheses)
-//{
-//	TextBlockData* data = static_cast<TextBlockData*>(currentBlock.userData());
-//	QVector<ParenthesisInfo*> parentheses = data->parentheses();
-//
-//	int docPos = currentBlock.position();
-//	for (; i > -1 && parentheses.size() > 0; --i) 
-//	{
-//		ParenthesisInfo* info = parentheses.at(i);
-//		if (info->character == ')') {
-//			++numRightParentheses;
-//			continue;
-//		}
-//		if (info->character == '(' && numRightParentheses == 0) 
-//		{
-//			createParenthesisSelection(docPos + info->position);
-//			return true;
-//		}
-//		else
-//			--numRightParentheses;
-//	}
-//
-//	currentBlock = currentBlock.previous();
-//	if (currentBlock.isValid())
-//		return matchRightParenthesis(currentBlock, 0, numRightParentheses);
-//
-//	return false;
-//}
-
-
-//void Editor::createParenthesisSelection(int pos)
-//{
-//	QList<QTextEdit::ExtraSelection> selections = extraSelections();
-//
-//	QTextEdit::ExtraSelection selection;
-//	QTextCharFormat format = selection.format;
-//	format.setBackground(Qt::green);
-//	selection.format = format;
-//
-//	QTextCursor cursor = textCursor();
-//	cursor.setPosition(pos);
-//	cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
-//	selection.cursor = cursor;
-//
-//	selections.append(selection);
-//
-//	setExtraSelections(selections);
-//}

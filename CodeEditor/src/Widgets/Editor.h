@@ -35,21 +35,10 @@ private Q_SLOTS:
 private:
 	QWidget* m_lineNumberArea;
 	BaseHighlighter* m_highlighter;
-	//std::string* m_braces;
 
 	void highlightCurrentLine(QList<QTextEdit::ExtraSelection>&);
 	void highlightBraces(QList<QTextEdit::ExtraSelection>&);
 	QChar charUnderCursor(int offset = 0) const;
-
-
-	/*bool matchLeftParenthesis(QTextBlock currentBlock, int index, int numRightParentheses);
-	bool matchRightParenthesis(QTextBlock currentBlock, int index, int numLeftParentheses);*/
-
-	/*bool matchLeftParenthesis(QTextBlock currentBlock, int index, int numRightParentheses, const char& open, const char& close);
-	bool matchRightParenthesis(QTextBlock currentBlock, int index, int numLeftParentheses, const char& open, const char& close);
-	void createParenthesisSelection(int pos);*/
-
-
 };
 
 
