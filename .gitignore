@@ -30,3 +30,18 @@
 *.exe
 *.out
 *.app
+
+
+*/Debug
+*/Release
+
+# User-specific files
+.vs/
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# User-specific files (MonoDevelop/Xamarin Studio)
+*.userprefs
