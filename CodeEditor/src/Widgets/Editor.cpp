@@ -236,10 +236,36 @@ void Editor::highlightBraces(QList<QTextEdit::ExtraSelection>& extraSelections)
 	const QVector<QPair<QChar, QChar>>* braces = m_highlighter->braces();
 	int direction, position = textCursor().position();
 	QChar brace, matchingBrace;
+	bool inverted = false;
 
 	for (auto& pair : *braces)
 	{
-		if (pair.first == currentChar)
+		// if cursor is in the middle of open and close brace, 
+		// no need to search for anything and highlight both prevChar and currentChar
+		if (pair.first == prevChar && pair.second == currentChar)
+		{
+			QTextEdit::ExtraSelection selection;
+			selection.format.setBackground(Qt::green);
+
+			selection.cursor = textCursor();
+			selection.cursor.clearSelection();
+			selection.cursor.movePosition(
+				QTextCursor::MoveOperation::Left,
+				QTextCursor::MoveMode::MoveAnchor,
+				1
+			);
+
+			selection.cursor.movePosition(
+				QTextCursor::MoveOperation::Right,
+				QTextCursor::MoveMode::KeepAnchor,
+				2
+			);
+
+			extraSelections.append(selection);
+
+			return;
+		}
+		else if (pair.first == currentChar)
 		{
 			direction = 1;
 			brace = currentChar;
@@ -248,6 +274,21 @@ void Editor::highlightBraces(QList<QTextEdit::ExtraSelection>& extraSelections)
 		else if (pair.second == prevChar)
 		{
 			direction = -1;
+			brace = prevChar;
+			matchingBrace = pair.first;
+			position--;
+		}
+		else if (pair.first == prevChar)
+		{
+			direction = 1;
+			inverted = true;
+			brace = prevChar;
+			matchingBrace = pair.second;
+		}
+		else if (pair.second == currentChar)
+		{
+			direction = -1;
+			inverted = true;
 			brace = prevChar;
 			matchingBrace = pair.first;
 			position--;
@@ -278,9 +319,8 @@ void Editor::highlightBraces(QList<QTextEdit::ExtraSelection>& extraSelections)
 		if (counter == 0)
 		{
 			QTextEdit::ExtraSelection selection;
-			QTextCharFormat format = selection.format;
-			format.setBackground(Qt::green);
-			selection.format = format;
+			selection.format.setBackground(Qt::green);
+
 
 			QTextCursor::MoveOperation directionEnum =
 				direction < 0 ?
@@ -289,6 +329,7 @@ void Editor::highlightBraces(QList<QTextEdit::ExtraSelection>& extraSelections)
 
 			selection.cursor = textCursor();
 			selection.cursor.clearSelection();
+			int pos = std::abs(textCursor().position() - position);
 			selection.cursor.movePosition(
 				directionEnum,
 				QTextCursor::MoveMode::MoveAnchor,
@@ -302,6 +343,15 @@ void Editor::highlightBraces(QList<QTextEdit::ExtraSelection>& extraSelections)
 			);
 
 			extraSelections.append(selection);
+
+			// highlight selected char
+			if (inverted)
+			{
+				directionEnum = directionEnum ==
+					QTextCursor::MoveOperation::Left ?
+					QTextCursor::MoveOperation::Right :
+					QTextCursor::MoveOperation::Left;
+			}
 
 			selection.cursor = textCursor();
 			selection.cursor.clearSelection();
