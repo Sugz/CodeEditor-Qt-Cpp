@@ -7,13 +7,14 @@
 #include <QScrollBar>
 
 
-Editor::Editor(QWidget* parent) : QTextEdit(parent)
+Editor::Editor(QWidget* parent) :
+	QTextEdit(parent),
+	m_lineNumberArea(new LineNumberArea(this)),
+	m_highlighter(nullptr),
+	m_tabStop(4),
+	m_lineHeightMultiplier(1),
+	m_minVisibleLines(5)
 {
-	m_lineNumberArea = new LineNumberArea(this);
-	m_highlighter = nullptr;
-
-	this->verticalScrollBar()->setSingleStep(this->fontMetrics().height()); //TODO useless here (since font can change, place it in setFont())
-
 	connect(this->document(), &QTextDocument::blockCountChanged, this, &Editor::updateLineNumberAreaWidth);
 	connect(this->verticalScrollBar(), &QScrollBar::valueChanged, this, &Editor::updateLineNumberArea);
 	connect(this, &Editor::textChanged, this, &Editor::updateLineNumberArea);
@@ -34,11 +35,24 @@ Editor::~Editor()
 }
 
 
+void Editor::resizeEvent(QResizeEvent* e)
+{
+	QTextEdit::resizeEvent(e);
+
+	setBottomMargin();
+
+	QRect cr = contentsRect();
+	m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
+}
+
+
+#pragma region lineNumberArea
+
 int Editor::lineNumberAreaWidth()
 {
 	int digits = 1;
 	int max = qMax(1, document()->blockCount());
-	while (max >= 10) 
+	while (max >= 10)
 	{
 		max /= 10;
 		++digits;
@@ -75,7 +89,7 @@ void Editor::updateLineNumberArea()
 	updateLineNumberAreaWidth();
 
 	int dy = this->verticalScrollBar()->sliderPosition();
-	if (dy > -1) 
+	if (dy > -1)
 	{
 		m_lineNumberArea->scroll(0, dy);
 	}
@@ -86,34 +100,6 @@ void Editor::updateLineNumberArea()
 	if (first_block_id == 0 || this->textCursor().block().blockNumber() == first_block_id - 1)
 		this->verticalScrollBar()->setSliderPosition(dy - this->document()->documentMargin());
 
-}
-
-
-int Editor::getFirstVisibleBlockId()
-{
-	// Detect the first block for which bounding rect - once translated 
-	// in absolute coordinated - is contained by the editor's text area
-
-	// Costly way of doing but since "blockBoundingGeometry(...)" doesn't 
-	// exists for "QTextEdit"...
-
-	QRect r1 = this->viewport()->geometry();
-	QTextCursor curs = QTextCursor(this->document());
-	curs.movePosition(QTextCursor::Start);
-
-	for (int i = 0; i < this->document()->blockCount(); ++i)
-	{
-		QTextBlock block = curs.block();
-		QRect r2 = this->document()->documentLayout()->blockBoundingRect(block).translated(
-			r1.x(), r1.y() - this->verticalScrollBar()->sliderPosition()).toRect();
-		
-		if (r1.contains(r2, true))
-			return i;
-
-		curs.movePosition(QTextCursor::NextBlock);
-	}
-
-	return 0;
 }
 
 
@@ -157,11 +143,11 @@ void Editor::lineNumberAreaPaintEvent(QPaintEvent* event)
 			painter.setPen(QColor(120, 120, 120));
 			painter.setPen((this->textCursor().blockNumber() == blockNumber) ? col_1 : col_0);
 			painter.drawText(
-				-10, 
+				-10,
 				top,
-				m_lineNumberArea->width(), 
+				m_lineNumberArea->width(),
 				fontMetrics().height(),
-				Qt::AlignRight, 
+				Qt::AlignRight,
 				number);
 		}
 
@@ -173,28 +159,10 @@ void Editor::lineNumberAreaPaintEvent(QPaintEvent* event)
 
 }
 
-
-void Editor::resizeEvent(QResizeEvent* e)
-{
-	QTextEdit::resizeEvent(e);
-
-	QRect cr = contentsRect();
-	m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
-}
+#pragma endregion
 
 
-void Editor::setHighlighter(BaseHighlighter* highlighter)
-{
-	if (m_highlighter)
-		m_highlighter->setDocument(nullptr);
-
-	m_highlighter = highlighter;
-	if (m_highlighter)
-	{
-		m_highlighter->setDocument(document());
-	}
-}
-
+#pragma region Highlight
 
 void Editor::onCursorPositionChanged()
 {
@@ -209,7 +177,7 @@ void Editor::onCursorPositionChanged()
 
 void Editor::highlightCurrentLine(QList<QTextEdit::ExtraSelection>& extraSelections)
 {
-	if (!isReadOnly()) 
+	if (!isReadOnly())
 	{
 		QTextEdit::ExtraSelection selection;
 
@@ -369,6 +337,37 @@ void Editor::highlightBraces(QList<QTextEdit::ExtraSelection>& extraSelections)
 
 }
 
+#pragma endregion
+
+
+#pragma region Helpers
+
+int Editor::getFirstVisibleBlockId()
+{
+	// Detect the first block for which bounding rect - once translated 
+	// in absolute coordinated - is contained by the editor's text area
+
+	// Costly way of doing but since "blockBoundingGeometry(...)" doesn't 
+	// exists for "QTextEdit"...
+
+	QRect r1 = this->viewport()->geometry();
+	QTextCursor curs = QTextCursor(this->document());
+	curs.movePosition(QTextCursor::Start);
+
+	for (int i = 0; i < this->document()->blockCount(); ++i)
+	{
+		QTextBlock block = curs.block();
+		QRect r2 = this->document()->documentLayout()->blockBoundingRect(block).translated(
+			r1.x(), r1.y() - this->verticalScrollBar()->sliderPosition()).toRect();
+
+		if (r1.contains(r2, true))
+			return i;
+
+		curs.movePosition(QTextCursor::NextBlock);
+	}
+
+	return 0;
+}
 
 QChar Editor::charUnderCursor(int offset) const
 {
@@ -377,6 +376,51 @@ QChar Editor::charUnderCursor(int offset) const
 
 	if (index < 0 || index >= blockText.size())
 		return {};
-	
+
 	return blockText[index];
+}
+
+#pragma endregion
+
+
+void Editor::setHighlighter(BaseHighlighter* highlighter)
+{
+	if (m_highlighter)
+		m_highlighter->setDocument(nullptr);
+
+	m_highlighter = highlighter;
+	if (m_highlighter)
+	{
+		m_highlighter->setDocument(document());
+	}
+}
+
+
+float Editor::lineHeightMultiplier()
+{
+	return m_lineHeightMultiplier;
+}
+void Editor::setLineHeightMultiplier(float multiplier)
+{
+	m_lineHeightMultiplier = multiplier;
+}
+
+
+void Editor::setFont(const QFont& font)
+{
+	QWidget::setFont(font);
+
+	verticalScrollBar()->setSingleStep(fontMetrics().height());
+	QTextEdit::setTabStopWidth(m_tabStop * fontMetrics().width(' '));
+	m_lineHeight = static_cast<float>(fontMetrics().height()) * m_lineHeightMultiplier;
+	setBottomMargin();
+}
+
+
+void Editor::setBottomMargin()
+{
+	int maxVisibleLines = contentsRect().height() / m_lineHeight;
+	QTextFrameFormat format = document()->rootFrame()->frameFormat();
+	format.setBottomMargin((maxVisibleLines - m_minVisibleLines) * m_lineHeight);
+	document()->rootFrame()->setFrameFormat(format);
 }
