@@ -22,6 +22,7 @@ Editor::Editor(QWidget* parent) : QTextEdit(parent)
 	updateLineNumberAreaWidth();
 }
 
+
 Editor::~Editor()
 {
 	delete m_highlighter;
@@ -43,8 +44,7 @@ int Editor::lineNumberAreaWidth()
 		++digits;
 	}
 
-	int space = 20 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
-	return space;
+	return 20 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
 }
 
 
@@ -136,16 +136,16 @@ void Editor::lineNumberAreaPaintEvent(QPaintEvent* event)
 	int additional_margin;
 	if (blockNumber == 0)
 		// Simply adjust to document's margin
-		additional_margin = (int)this->document()->documentMargin() - 1 - this->verticalScrollBar()->sliderPosition();
+		additional_margin = static_cast<int>(this->document()->documentMargin() - 1 - this->verticalScrollBar()->sliderPosition());
 	else
 		// Getting the height of the visible part of the previous "non entirely visible" block
-		additional_margin = (int)this->document()->documentLayout()->blockBoundingRect(prev_block)
-		.translated(0, translate_y).intersected(this->viewport()->geometry()).height();
+		additional_margin = static_cast<int>(this->document()->documentLayout()->blockBoundingRect(prev_block)
+			.translated(0, translate_y).intersected(this->viewport()->geometry()).height());
 
 	// Shift the starting point
 	top += additional_margin;
 
-	int bottom = top + (int)this->document()->documentLayout()->blockBoundingRect(block).height();
+	int bottom = top + static_cast<int>(this->document()->documentLayout()->blockBoundingRect(block).height());
 
 	QColor col_1(90, 255, 30);      // Current line (custom green)
 	QColor col_0(120, 120, 120);    // Other lines  (custom darkgrey)
@@ -167,7 +167,7 @@ void Editor::lineNumberAreaPaintEvent(QPaintEvent* event)
 
 		block = block.next();
 		top = bottom;
-		bottom = top + (int)this->document()->documentLayout()->blockBoundingRect(block).height();
+		bottom = top + static_cast<int>(this->document()->documentLayout()->blockBoundingRect(block).height());
 		++blockNumber;
 	}
 
@@ -200,7 +200,6 @@ void Editor::onCursorPositionChanged()
 {
 	QList<QTextEdit::ExtraSelection> extraSelections;
 	highlightCurrentLine(extraSelections);
-	//matchParentheses();
 	if (m_highlighter && m_highlighter->braces() != 0)
 		highlightBraces(extraSelections);
 

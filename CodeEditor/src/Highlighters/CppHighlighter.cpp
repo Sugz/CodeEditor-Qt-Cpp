@@ -109,65 +109,6 @@ void CppHighlighter::highlightBlock(const QString& text)
 		startIndex = text.indexOf(commentStartExpression, startIndex + commentLength);
 	}
 
-	/*TextBlockData* data = new TextBlockData;
-
-	unsigned int braceIndex;
-	char c;
-	for (int i = 0; i < text.length(); i++)
-	{
-		c = text[i].toLatin1();
-		braceIndex = m_braces->find(c);
-		if (braceIndex != std::string::npos)
-		{
-			ParenthesisInfo* info = new ParenthesisInfo;
-			info->character = c;
-			info->position = i;
-
-			data->insert(info);
-		}
-	}*/
-
-
-	/*for (auto chr : text)
-	{
-		char c = chr.toLatin1();
-		braceIndex = m_braces->find(c);
-		if (braceIndex != std::string::npos)
-		{
-			ParenthesisInfo* info = new ParenthesisInfo;
-			info->character = chr.toLatin1();
-			info->position = braceIndex;
-
-			data->insert(info);
-		}
-	}*/
-
-	/*int leftPos = text.indexOf('(');
-	while (leftPos != -1) 
-	{
-		ParenthesisInfo* info = new ParenthesisInfo;
-		info->character = '(';
-		info->position = leftPos;
-
-		data->insert(info);
-		l
-	}eftPos = text.indexOf('(', leftPos + 1);
-
-	
-
-	int rightPos = text.indexOf(')');
-	while (rightPos != -1) 
-	{
-		ParenthesisInfo* info = new ParenthesisInfo;
-		info->character = ')';
-		info->position = rightPos;
-
-		data->insert(info);
-
-		rightPos = text.indexOf(')', rightPos + 1);
-	}*/
-
-	/*setCurrentBlockUserData(data);*/
 }
 
 
