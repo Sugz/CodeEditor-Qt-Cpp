@@ -40,6 +40,9 @@
     <ClCompile Include="src\Highlighters\BaseHighlighter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Widgets\LineNumberArea.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="Resources\CodeEditor.qrc">
@@ -62,6 +65,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="src\Highlighters\BaseHighlighter.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="src\Widgets\LineNumberArea.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

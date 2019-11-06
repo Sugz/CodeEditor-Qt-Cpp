@@ -88,6 +88,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Widgets\LineNumberArea.cpp" />
     <ClCompile Include="src\Highlighters\BaseHighlighter.cpp" />
     <ClCompile Include="src\Highlighters\CppHighlighter.cpp" />
     <ClCompile Include="src\Widgets\Editor.cpp" />
@@ -111,6 +112,9 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="src\Highlighters\BaseHighlighter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="src\Widgets\LineNumberArea.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
