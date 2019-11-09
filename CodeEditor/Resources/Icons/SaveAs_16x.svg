@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;">
+    <path id="Outline" d="M4,3L4,16L16,16L16,5L14,3.001L4,3Z" style="fill:rgb(246,246,246);fill-rule:nonzero;"/>
+    <path id="Bg" d="M13,4L13,9L8,9L8,4L5,4L5,15L15,15L15,6L13,4ZM12,7L10,7L10,4L12,4L12,7Z" style="fill:rgb(0,83,156);fill-rule:nonzero;"/>
+    <path id="StarOutline" d="M3,0.879L3,0L6,0L6,0.879L6.621,0.257L8.743,2.379L8.121,3L9,3L9,6L8.121,6L8.743,6.621L6.621,8.743L6,8.121L6,9L3,9L3,8.121L2.379,8.743L0.257,6.621L0.879,6L0,6L0,3L0.879,3L0.257,2.379L2.379,0.257L3,0.879Z" style="fill:rgb(235,235,235);"/>
+    <path id="StarFg" d="M5,5L4,5L4,4L5,4L5,5ZM8,4L5.707,4L7.328,2.379L6.621,1.671L5,3.292L5,1L4,1L4,3.292L2.379,1.671L1.671,2.379L3.292,4L1,4L1,5L3.292,5L1.671,6.621L2.379,7.328L4,5.707L4,8L5,8L5,5.707L6.621,7.328L7.328,6.621L5.707,5L8,5L8,4Z" style="fill:rgb(194,125,26);fill-rule:nonzero;"/>
+</svg>

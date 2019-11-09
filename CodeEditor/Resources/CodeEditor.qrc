@@ -1,4 +1,9 @@
 <RCC>
-    <qresource prefix="CodeEditor">
+    <qresource prefix="/CodeEditor">
+        <file>Icons/NewFile_12x.svg</file>
+        <file>Icons/OpenFolder_16x.svg</file>
+        <file>Icons/Save_16x.svg</file>
+        <file>Icons/SaveAll_16x.svg</file>
+        <file>Icons/SaveAs_16x.svg</file>
     </qresource>
 </RCC>

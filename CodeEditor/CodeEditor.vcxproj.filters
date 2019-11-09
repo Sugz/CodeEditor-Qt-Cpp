@@ -43,6 +43,9 @@
     <ClCompile Include="src\Widgets\LineNumberArea.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Widgets\FoldingArea.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="Resources\CodeEditor.qrc">
@@ -70,5 +73,11 @@
     <QtMoc Include="src\Widgets\LineNumberArea.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="src\Widgets\FoldingArea.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\StyleSheetDark.qss" />
   </ItemGroup>
 </Project>

@@ -67,6 +67,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <AdditionalIncludeDirectories>.\src\Widgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -80,6 +81,7 @@
       <DebugInformationFormat />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <AdditionalIncludeDirectories>.\src\Widgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -88,6 +90,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Widgets\FoldingArea.cpp" />
     <ClCompile Include="src\Widgets\LineNumberArea.cpp" />
     <ClCompile Include="src\Highlighters\BaseHighlighter.cpp" />
     <ClCompile Include="src\Highlighters\CppHighlighter.cpp" />
@@ -115,6 +118,12 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="src\Widgets\LineNumberArea.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\StyleSheetDark.qss" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="src\Widgets\FoldingArea.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

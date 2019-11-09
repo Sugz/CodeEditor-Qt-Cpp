@@ -1,0 +1,101 @@
+QMainWindow {
+    color: rgb(200, 200, 200);
+    background-color: rgb(62, 60, 60);
+}
+
+QMenuBar {
+	color: rgb(200, 200, 200);
+	background-color: rgb(62, 60, 60);
+    border-bottom: 1px solid #2D2D2D;
+}
+
+QToolBar {
+    border-bottom: 1px solid #2D2D2D;
+}
+
+QStatusBar {
+    border-top: 1px solid #2D2D2D;
+}
+
+Editor {
+    border: 0;
+    border-left: 1px solid #2D2D2D;
+    color: rgb(220, 200, 200);
+    background-color: rgb(36, 35, 35);
+    selection-background-color: #661E79FF
+}
+
+LineNumberArea {
+    background-color: rgb(46, 45, 45);
+    border-left: 1px solid #2D2D2D;
+}
+
+FoldingArea {
+	background-color: transparent;
+}
+
+QScrollBar:vertical {
+    background: transparent;
+    width: 18px;
+	padding-left: 4px;
+    padding-right: 4px;
+}
+
+QScrollBar::handle:vertical {
+    background: rgba(0, 0, 0, 30%);
+    border: 0px;
+    width: 10px;
+    min-height: 39px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: rgba(120, 120, 120, 50%);
+	width: 14px;
+}
+
+QScrollBar::add-line:vertical {
+    border: none;
+    background: none;
+    height: 0px;
+    subcontrol-position: bottom;
+    subcontrol-origin: padding;
+}
+
+QScrollBar::sub-line:vertical {
+    border: none;
+    background: none;
+    height: 0px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar:horizontal {
+    background: transparent;
+    height: 18px;
+	padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+QScrollBar::handle:horizontal {
+    background: rgba(0, 0, 0, 30%);
+    border: 0px;
+    height: 10px;
+    min-width: 39px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: rgba(120, 120, 120, 50%);
+
+}
+
+QScrollBar::add-line:horizontal {
+    border: none;
+    background: none;
+    width: 0px;
+}
+
+QScrollBar::sub-line:horizontal {
+    border: none;
+    background: none;
+    width: 0px;
+}
