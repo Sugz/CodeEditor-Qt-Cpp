@@ -1,10 +1,10 @@
 #pragma once
 
-#include <QWidget>
+#include <QFrame>
 
 class Editor;
 
-class LineNumberArea : public QWidget
+class LineNumberArea : public QFrame
 {
 	Q_OBJECT
 
@@ -18,9 +18,13 @@ public:
 	QSize sizeHint() const override;
 
 protected:
-	void paintEvent(QPaintEvent* event) override;
+	void paintEvent(QPaintEvent*) override;
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
 	Editor* m_editor;
+	QPoint m_dragStartPos;
 
 };
