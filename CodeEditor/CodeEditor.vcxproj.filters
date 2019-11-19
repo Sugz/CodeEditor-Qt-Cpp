@@ -46,6 +46,9 @@
     <ClCompile Include="src\Widgets\FoldingArea.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Widgets\FoldedTextAttr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="Resources\CodeEditor.qrc">
@@ -74,6 +77,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="src\Widgets\FoldingArea.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="src\Widgets\FoldedTextAttr.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
