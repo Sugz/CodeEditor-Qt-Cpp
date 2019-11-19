@@ -2,9 +2,11 @@
 
 #include <QTextEdit>
 
+
 class BaseHighlighter;
 class LineNumberArea;
 class FoldingArea;
+class FoldedTextAttr;
 
 struct Brackets
 {
@@ -36,8 +38,11 @@ private Q_SLOTS:
 	void updateLeftAreas(int);
 	void onCursorPositionChanged();
 	
-
+	
 private:
+	friend class LineNumberArea;
+	friend class FoldingArea;
+
 	LineNumberArea* m_lineNumberArea;
 	FoldingArea* m_foldingArea;
 	BaseHighlighter* m_highlighter;

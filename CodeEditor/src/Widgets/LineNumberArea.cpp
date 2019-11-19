@@ -1,5 +1,6 @@
 #include "LineNumberArea.h"
 #include "Editor.h"
+#include "FoldingArea.h"
 
 // Qt
 #include <QTextEdit>
@@ -33,7 +34,7 @@ QSize LineNumberArea::sizeHint() const
 		++digits;
 	}
 
-	int space = 30 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
+	int space = 25 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
 
 	return { space, 0 };
 }
@@ -89,10 +90,6 @@ void LineNumberArea::paintEvent(QPaintEvent* e)
 {
 	QPainter painter(this);
 
-	// Clearing rect to update
-	/*QColor background = palette().color(QPalette::Background);
-	painter.fillRect(e->rect(), background);*/
-
 	int blockNumber = m_editor->firstVisibleBlock();
 	QTextBlock block = m_editor->document()->findBlockByNumber(blockNumber);
 	int top = static_cast<int>(m_editor->document()->documentLayout()->blockBoundingRect(block).translated(0, -m_editor->verticalScrollBar()->value()).top());
@@ -111,6 +108,13 @@ void LineNumberArea::paintEvent(QPaintEvent* e)
 
 	while (block.isValid() && top <= e->rect().bottom())
 	{
+		if (m_editor->m_foldingArea->m_foldedLines.contains(blockNumber))
+		{
+			block = block.next();
+			++blockNumber;
+			continue;
+		}
+
 		if (block.isVisible() && bottom >= e->rect().top())
 		{
 			QString number = QString::number(blockNumber + 1);
@@ -120,7 +124,7 @@ void LineNumberArea::paintEvent(QPaintEvent* e)
 			painter.setPen(isCurrentLine ? currentLine : (isSelected ? selectedLines : otherLines));
 
 			painter.drawText(
-				-15,
+				-10,
 				top + 1,
 				sizeHint().width(),
 				m_editor->fontMetrics().height() + 1,

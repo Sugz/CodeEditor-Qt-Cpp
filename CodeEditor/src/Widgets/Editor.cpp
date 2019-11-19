@@ -1,6 +1,7 @@
 #include "Editor.h"
 #include "LineNumberArea.h"
 #include "FoldingArea.h"
+#include "FoldedTextAttr.h"
 #include "../Highlighters/BaseHighlighter.h"
 
 #include <QTextBlock>
@@ -9,11 +10,12 @@
 #include <QScrollBar>
 #include <QApplication>
 #include <QDebug>
+#include <QCommonStyle>
 
 #include <vector>
 #include <iostream>
 #include <iomanip>
-#include <QCommonStyle>
+
 
 
 Editor::Editor(QWidget* parent) 
@@ -30,6 +32,8 @@ Editor::Editor(QWidget* parent)
 	//TODO if i don't need to connect textChanged & updateLineNumberArea, I can try to connect to setLineSpacing ?
 
 	//TODO: store the first visible block and update it when scrollbarvalue change->  m_lineNumberArea->update() & paint indented lines
+
+	//document()->documentLayout()->registerHandler(foldedHandler->type(), foldedHandler);
 
 	setConnections();
 	document()->setDocumentMargin(0);
@@ -82,7 +86,18 @@ void Editor::paintEvent(QPaintEvent* e)
 	QPainter painter(viewport());
 	painter.setPen(QColor(100, 100, 100));
 
-	QTextBlock block = document()->findBlockByNumber(firstVisibleBlock());
+	QTextBlock block = document()->firstBlock();
+
+	
+	while (block.isValid())
+	{
+
+
+		block = block.next();
+	}
+
+
+	/*QTextBlock block = document()->findBlockByNumber(firstVisibleBlock());
 	int top = static_cast<int>(document()->documentLayout()->blockBoundingRect(block).translated(0, -verticalScrollBar()->value()).top());
 	int blockHeight = static_cast<int>(document()->documentLayout()->blockBoundingRect(block).height());
 	int bottom = top + blockHeight;
@@ -104,7 +119,7 @@ void Editor::paintEvent(QPaintEvent* e)
 		block = block.next();
 		top = bottom;
 		bottom = top + static_cast<int>(document()->documentLayout()->blockBoundingRect(block).height());
-	}
+	}*/
 
 	/*QPainter painter(viewport());
 	painter.setPen(QColor(100, 100, 100));
