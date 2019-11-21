@@ -12,6 +12,7 @@ FoldedTextAttr::FoldedTextAttr(QObject* parent) : QObject(parent)
 {
 }
 
+
 QSizeF FoldedTextAttr::intrinsicSize(QTextDocument* doc, int posInDocument, const QTextFormat& format) 
 {
 	Q_UNUSED(doc)

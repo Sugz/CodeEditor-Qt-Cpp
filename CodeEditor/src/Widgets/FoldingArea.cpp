@@ -5,8 +5,9 @@
 #include <QTextBlock>
 #include <QPainter>
 #include <QAbstractTextDocumentLayout>
-
 #include <QDebug>
+
+#include <algorithm>
 
 
 FoldingArea::FoldingArea(Editor* parent)
@@ -17,7 +18,7 @@ FoldingArea::FoldingArea(Editor* parent)
 {
 	setMouseTracking(true);
 
-	connect(m_editor, &Editor::textChanged, [=] { repaint(); });
+	connect(m_editor, &Editor::textChanged, [=] { getFolds(); });
 
 	m_editor->document()->documentLayout()->registerHandler(foldedHandler->type(), foldedHandler);
 }
@@ -40,7 +41,7 @@ void FoldingArea::mousePressEvent(QMouseEvent* e)
 		if (fold->arrowRect.contains(e->pos()))
 		{
 			needRepaint = true;
-
+			m_recalculateFolds = false;
 			if (fold->closed)
 			{
 				fold->closed = false;
@@ -53,6 +54,7 @@ void FoldingArea::mousePressEvent(QMouseEvent* e)
 				selection.cursor = m_editor->textCursor();
 				selection.cursor.clearSelection();
 				selection.cursor.movePosition(QTextCursor::Start);
+				selection.cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, fold->start - fold->offset);
 				selection.cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::MoveAnchor);
 
 				foldedHandler->unfold(selection.cursor);
@@ -62,7 +64,7 @@ void FoldingArea::mousePressEvent(QMouseEvent* e)
 				selection.format.setProperty(QTextFormat::FullWidthSelection, true);
 				selection.cursor.movePosition(QTextCursor::Start);
 				selection.cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, fold->start);
-				selection.cursor.movePosition(QTextCursor::Down, QTextCursor::KeepAnchor, fold->end - fold->start + 1);
+				selection.cursor.movePosition(QTextCursor::Down, QTextCursor::KeepAnchor, fold->end - fold->start + 1 - fold->offset);
 
 				QList<QTextEdit::ExtraSelection> extraSelections;
 				extraSelections.append(selection);
@@ -80,21 +82,27 @@ void FoldingArea::mousePressEvent(QMouseEvent* e)
 				selection.cursor = m_editor->textCursor();
 				selection.cursor.clearSelection();
 				selection.cursor.movePosition(QTextCursor::Start);
-				selection.cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, fold->start);
-				selection.cursor.movePosition(QTextCursor::Down, QTextCursor::KeepAnchor, fold->end - fold->start + 1);
+				selection.cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, fold->start - fold->offset);
+				selection.cursor.movePosition(QTextCursor::Down, QTextCursor::KeepAnchor, fold->end - fold->start);
 				selection.cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
 
 				foldedHandler->fold(selection.cursor, *fold);
 
 			}
+
+			updateFoldsOffset();
+			m_recalculateFolds = true;
+			break;
 		}
 	}
 
 	if (needRepaint)
 	{
-		m_recalculateFolds = false;
 		repaint();
-		m_recalculateFolds = true;
+
+		/*m_recalculateFolds = false;
+		repaint();
+		m_recalculateFolds = true;*/
 	}
 }
 
@@ -105,6 +113,7 @@ void FoldingArea::mouseMoveEvent(QMouseEvent* e)
 
 	for (Fold* fold : m_folds)
 	{
+
 		fold->arrowHovered = fold->arrowRect.contains(e->pos());
 
 		if (!fold->closed && fold->hoverRect.contains(e->pos()))
@@ -119,8 +128,8 @@ void FoldingArea::mouseMoveEvent(QMouseEvent* e)
 			selection.cursor.clearSelection();
 
 			selection.cursor.movePosition(QTextCursor::Start);
-			selection.cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, fold->start);
-			selection.cursor.movePosition(QTextCursor::Down, QTextCursor::KeepAnchor, fold->end - fold->start + 1);
+			selection.cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, fold->start - fold->offset);
+			selection.cursor.movePosition(QTextCursor::Down, QTextCursor::KeepAnchor, fold->end - fold->start + 1 - fold->offset);
 
 			extraSelections.append(selection);
 		}
@@ -131,19 +140,30 @@ void FoldingArea::mouseMoveEvent(QMouseEvent* e)
 	}
 
 	m_editor->setExtraSelections(extraSelections);
-	m_recalculateFolds = false;
+	/*m_recalculateFolds = false;*/
 	repaint();
-	m_recalculateFolds = true;
+	/*m_recalculateFolds = true;*/
 }
 
 
 void FoldingArea::getFolds()
 {
+	if (!m_recalculateFolds)
+		return;
+
+	qDebug() << "getFolds" << "\n";
+
 	QList<Fold*> closedFolds;
 	for (Fold* fold : m_folds)
 	{
 		if (fold->closed)
+		{
 			closedFolds.append(fold);
+		}
+		else
+		{
+			delete fold;
+		}
 	}
 
 	m_folds.clear();
@@ -157,6 +177,8 @@ void FoldingArea::getFolds()
 	int depth = 0;
 	int emptyLinesHeight = 0;
 	bool include = false;
+
+	int regionDepth = 0;
 
 	QList<Fold*> currentFolds;
 
@@ -187,8 +209,10 @@ void FoldingArea::getFolds()
 				hover.setWidth(sizeHint().width() - 8);
 
 				Fold* fold = new Fold;
-				fold->arrowRect = box;
-				fold->hoverRect = hover;
+				/*fold->arrowRect = box;
+				fold->hoverRect = hover;*/
+				fold->baseArrowRect = box;
+				fold->baseHoverRect = hover;
 				fold->start = blockNumber;
 				fold->end = blockNumber;
 				fold->foldType = FoldType::Include;
@@ -202,14 +226,16 @@ void FoldingArea::getFolds()
 			{
 				for (Fold* fold : currentFolds)
 				{
-					fold->hoverRect.setHeight(fold->hoverRect.height() + box.height());
-					fold->hoverRect.setHeight(fold->hoverRect.height() + emptyLinesHeight);
+					fold->baseHoverRect.setHeight(fold->baseHoverRect.height() + box.height());
+					fold->baseHoverRect.setHeight(fold->baseHoverRect.height() + emptyLinesHeight);
 					fold->end = blockNumber;
 				}
 
 				emptyLinesHeight = 0;
 			}
 		}
+
+
 
 		else
 		{
@@ -221,23 +247,88 @@ void FoldingArea::getFolds()
 		block = block.next();
 		++blockNumber;
 	}
+
+	updateFoldsOffset();
+	repaint();
+}
+
+
+void FoldingArea::updateFoldsOffset()
+{
+	//qDebug() << "updateFoldsOffset" << "\n";
+
+	// sort the fold list based on their start attribute
+	std::sort(m_folds.begin(), m_folds.end(), Fold::comparePtr);
+
+	// store the real start of the fold
+	// for each closed fold, increment offset from the number of lines removed from the closed folds
+	// store the offset on the fold
+	int offset = 0, rectOffset = 0;
+	for (Fold* fold : m_folds)
+	{
+		//qDebug() << "Fold start: " << fold->start << "\n";
+
+		fold->offset = offset;
+
+
+		//fold->rectsOffset = rectOffset;
+
+		QRect hoverRect = fold->baseHoverRect;
+		hoverRect.setTop(hoverRect.top() - rectOffset);
+		hoverRect.setHeight(fold->baseHoverRect.height());
+		fold->hoverRect = hoverRect;
+
+		QRect arrowRect = fold->baseArrowRect;
+		arrowRect.setTop(arrowRect.top() - rectOffset);
+		arrowRect.setHeight(fold->baseArrowRect.height());
+		fold->arrowRect = arrowRect;
+
+		if (fold->closed)
+		{
+			offset += fold->end - fold->start;
+			rectOffset += fold->foldHeight;
+			//qDebug() << "offset: " << offset << "\n";
+		}
+		else
+		{
+			// get the height of the qtextblock that will be removed when folding
+			QTextBlock block;
+			int blockHeight = 0;
+			for (int i = fold->start + 1; i <= fold->end; ++i)
+			{
+				block = m_editor->document()->findBlockByNumber(i);
+				blockHeight += static_cast<int>(m_editor->document()->documentLayout()->blockBoundingRect(block).height());
+			}
+			fold->foldHeight = blockHeight;
+			//qDebug() << "Fold height: " << fold->foldHeight << "\n";
+		}
+	}
 }
 
 
 void FoldingArea::paintEvent(QPaintEvent* e)
 {
-	if (m_recalculateFolds)
-		getFolds();
+	/*if (m_recalculateFolds)
+		getFolds();*/
 	
 	QPainter painter(this);
 	for (Fold* fold : m_folds)
 	{
 		QColor arrowColor = fold->arrowHovered ? QColor(225, 225, 225) : QColor(150, 150, 150);
 
-		qDebug() << "fold hovered: " << fold->hovered << "\n";
+		//qDebug() << "fold hovered: " << fold->hovered << "\n";
 		if (fold->hovered)
+		{
+			/*QRect hoverRect = fold->hoverRect;
+			hoverRect.setTop(hoverRect.top() - fold->rectsOffset);
+			hoverRect.setHeight(fold->hoverRect.height());
+			painter.fillRect(hoverRect, QColor(255, 255, 255, 50)); */
 			painter.fillRect(fold->hoverRect, QColor(255, 255, 255, 50));
+		}
 
+		/*QRect arrowRect = fold->arrowRect;
+		arrowRect.setTop(arrowRect.top() - fold->rectsOffset);
+		arrowRect.setHeight(fold->arrowRect.height());*/
 		QPointF points[3];
 		if (fold->closed)
 		{
@@ -252,6 +343,19 @@ void FoldingArea::paintEvent(QPaintEvent* e)
 			points[2] = QPointF(fold->arrowRect.right(), fold->arrowRect.top() + 4);
 		}
 
+		/*if (fold->closed)
+		{
+			points[0] = QPointF(arrowRect.left() + 4, arrowRect.top());
+			points[1] = QPointF(arrowRect.right() - 2, arrowRect.top() + 6);
+			points[2] = QPointF(arrowRect.left() + 4, arrowRect.bottom());
+		}
+		else
+		{
+			points[0] = QPointF(arrowRect.left(), arrowRect.top() + 4);
+			points[1] = QPointF(arrowRect.left() + 6, arrowRect.bottom() - 2);
+			points[2] = QPointF(arrowRect.right(), arrowRect.top() + 4);
+		}*/
+
 		QPainterPath path;
 		path.moveTo(points[0]);
 		path.lineTo(points[1]);
@@ -261,6 +365,20 @@ void FoldingArea::paintEvent(QPaintEvent* e)
 
 	}
 
+}
+
+
+void FoldingArea::setCursor(QTextCursor& cursor, int firstLine, unsigned int endLine, bool endOfLine)
+{
+	cursor.clearSelection();
+	cursor.movePosition(QTextCursor::Start);
+	cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, firstLine);
+
+	if (endLine != 0)
+		cursor.movePosition(QTextCursor::Down, QTextCursor::KeepAnchor, endLine);
+
+	if (endOfLine)
+		cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
 }
 
 

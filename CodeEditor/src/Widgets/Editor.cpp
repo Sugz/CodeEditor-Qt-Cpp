@@ -4,6 +4,7 @@
 #include "FoldedTextAttr.h"
 #include "../Highlighters/BaseHighlighter.h"
 
+
 #include <QTextBlock>
 #include <QAbstractTextDocumentLayout>
 #include <QPainter>
@@ -88,7 +89,7 @@ void Editor::paintEvent(QPaintEvent* e)
 
 	QTextBlock block = document()->firstBlock();
 
-	
+
 	while (block.isValid())
 	{
 
@@ -105,7 +106,7 @@ void Editor::paintEvent(QPaintEvent* e)
 	QVector<int> openBrackets;
 	QVector<int> closeBrackets;
 
-	
+
 
 	while (block.isValid() && top <= e->rect().bottom())
 	{
@@ -160,7 +161,7 @@ void Editor::paintEvent(QPaintEvent* e)
 				++position;
 			}
 
-			// draw unmatched open brackets 
+			// draw unmatched open brackets
 			//if (openBrackets.size() != 0)
 			//{
 			//	int position = openBrackets[0];
@@ -184,9 +185,9 @@ void Editor::paintEvent(QPaintEvent* e)
 			//			}
 			//		}
 			//	}
-			//	
+			//
 
-			//	
+			//
 			//}
 
 			// draw unmacthed close brackets
@@ -204,7 +205,7 @@ void Editor::paintEvent(QPaintEvent* e)
 				}
 			}
 
-			
+
 			//int closeBracketPos = block.text().indexOf('}');
 			//if (closeBracketPos != -1)
 			//{
@@ -405,7 +406,7 @@ void Editor::highlightBraces(QList<QTextEdit::ExtraSelection>& extraSelections)
 			matchingBrace = pair.first;
 			position--;
 		}
-		else
+		else 
 		{
 			continue;
 		}
@@ -502,8 +503,10 @@ int Editor::firstVisibleBlock()
 		// if the block doesn't contain text, relativeBlockBoundingRect.width() = 0
 		// and r1.intersects(relativeBlockBoundingRect) return false
 		// so force the relativeBlockBoundingRect width to be at least 1
-		if (r1.intersects(relativeBlockBoundingRect(block, r1, 1)))
-			return i;
+		if (r1.intersects(relativeBlockBoundingRect(block, r1, 1))) 
+		{
+			return i; 
+		}
 
 		curs.movePosition(QTextCursor::NextBlock);
 	}

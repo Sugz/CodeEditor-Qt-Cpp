@@ -4,14 +4,19 @@
 
 class Editor;
 class FoldedTextAttr;
+class QTextCursor;
 enum class FoldType;
 
 struct Fold
 {
 	bool closed = false, hovered = false, arrowHovered = false;
-	int start, end;
-	QRect arrowRect, hoverRect;
+	int start, end, offset, foldHeight;//, rectsOffset;
+	QRect arrowRect, hoverRect, baseArrowRect, baseHoverRect;
 	FoldType foldType;
+
+	static bool comparePtr(const Fold* a, const Fold* b) {
+		return ((*a).start < (*b).start);
+	}
 };
 
 class FoldingArea : public QFrame
@@ -37,5 +42,7 @@ private:
 	QList<int> m_foldedLines;
 	bool m_recalculateFolds;
 	void getFolds();
+	void updateFoldsOffset();
+	void setCursor(QTextCursor& cursor, int firstLine, unsigned int endLine = 0, bool endOfLine = false);
 	
 };
