@@ -50,25 +50,17 @@ void FoldingArea::mousePressEvent(QMouseEvent* e)
 				for (int i = fold->start + 1; i <= fold->end - fold->start; i++)
 					m_foldedLines.removeAll(i);
 
+				// unfold
 				QTextEdit::ExtraSelection selection;
 				selection.cursor = m_editor->textCursor();
-				selection.cursor.clearSelection();
-				selection.cursor.movePosition(QTextCursor::Start);
-				selection.cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, fold->start - fold->offset);
-				selection.cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::MoveAnchor);
-
+				setCursor(selection.cursor, fold->start - fold->offset, 0, true, QTextCursor::MoveAnchor);
 				foldedHandler->unfold(selection.cursor);
 
-				selection.cursor.clearSelection();
-				selection.format.setBackground(QColor(45, 45, 50, 128));
-				selection.format.setProperty(QTextFormat::FullWidthSelection, true);
-				selection.cursor.movePosition(QTextCursor::Start);
-				selection.cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, fold->start);
-				selection.cursor.movePosition(QTextCursor::Down, QTextCursor::KeepAnchor, fold->end - fold->start + 1 - fold->offset);
-
-				QList<QTextEdit::ExtraSelection> extraSelections;
-				extraSelections.append(selection);
-				m_editor->setExtraSelections(extraSelections);
+				// highlight editor lines
+				QList<QTextEdit::ExtraSelection> selectionsList;
+				setCursor(selection.cursor, fold->start, fold->end - fold->start + 1 - fold->offset);
+				highlightEditorLines(selection, selectionsList);
+				m_editor->setExtraSelections(selectionsList);
 			}
 			else
 			{
@@ -80,14 +72,9 @@ void FoldingArea::mousePressEvent(QMouseEvent* e)
 
 				QTextEdit::ExtraSelection selection;
 				selection.cursor = m_editor->textCursor();
-				selection.cursor.clearSelection();
-				selection.cursor.movePosition(QTextCursor::Start);
-				selection.cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, fold->start - fold->offset);
-				selection.cursor.movePosition(QTextCursor::Down, QTextCursor::KeepAnchor, fold->end - fold->start);
-				selection.cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+				setCursor(selection.cursor, fold->start - fold->offset, fold->end - fold->start, true);
 
 				foldedHandler->fold(selection.cursor, *fold);
-
 			}
 
 			updateFoldsOffset();
@@ -97,23 +84,16 @@ void FoldingArea::mousePressEvent(QMouseEvent* e)
 	}
 
 	if (needRepaint)
-	{
 		repaint();
-
-		/*m_recalculateFolds = false;
-		repaint();
-		m_recalculateFolds = true;*/
-	}
 }
 
-
+//TODO: to avoid useless repaint, store the current hovered fold, then when mouse move, if this is another fold or no fold, repaint
 void FoldingArea::mouseMoveEvent(QMouseEvent* e)
 {
-	QList<QTextEdit::ExtraSelection> extraSelections;
+	QList<QTextEdit::ExtraSelection> selectionsList;
 
 	for (Fold* fold : m_folds)
 	{
-
 		fold->arrowHovered = fold->arrowRect.contains(e->pos());
 
 		if (!fold->closed && fold->hoverRect.contains(e->pos()))
@@ -122,16 +102,9 @@ void FoldingArea::mouseMoveEvent(QMouseEvent* e)
 
 			// highlight editor lines
 			QTextEdit::ExtraSelection selection;
-			selection.format.setBackground(QColor(45, 45, 50, 128));
-			selection.format.setProperty(QTextFormat::FullWidthSelection, true);
 			selection.cursor = m_editor->textCursor();
-			selection.cursor.clearSelection();
-
-			selection.cursor.movePosition(QTextCursor::Start);
-			selection.cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, fold->start - fold->offset);
-			selection.cursor.movePosition(QTextCursor::Down, QTextCursor::KeepAnchor, fold->end - fold->start + 1 - fold->offset);
-
-			extraSelections.append(selection);
+			setCursor(selection.cursor, fold->start - fold->offset, fold->end - fold->start + 1 - fold->offset);
+			highlightEditorLines(selection, selectionsList);
 		}
 		else
 		{
@@ -139,10 +112,8 @@ void FoldingArea::mouseMoveEvent(QMouseEvent* e)
 		}
 	}
 
-	m_editor->setExtraSelections(extraSelections);
-	/*m_recalculateFolds = false;*/
+	m_editor->setExtraSelections(selectionsList);
 	repaint();
-	/*m_recalculateFolds = true;*/
 }
 
 
@@ -368,7 +339,7 @@ void FoldingArea::paintEvent(QPaintEvent* e)
 }
 
 
-void FoldingArea::setCursor(QTextCursor& cursor, int firstLine, unsigned int endLine, bool endOfLine)
+void FoldingArea::setCursor(QTextCursor& cursor, unsigned int firstLine, unsigned int endLine, bool endOfLine, QTextCursor::MoveMode mode)
 {
 	cursor.clearSelection();
 	cursor.movePosition(QTextCursor::Start);
@@ -378,7 +349,15 @@ void FoldingArea::setCursor(QTextCursor& cursor, int firstLine, unsigned int end
 		cursor.movePosition(QTextCursor::Down, QTextCursor::KeepAnchor, endLine);
 
 	if (endOfLine)
-		cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+		cursor.movePosition(QTextCursor::EndOfLine, mode);
+}
+
+
+void FoldingArea::highlightEditorLines(QTextEdit::ExtraSelection& selection, QList<QTextEdit::ExtraSelection>& selectionList)
+{
+	selection.format.setBackground(QColor(45, 45, 50, 128));
+	selection.format.setProperty(QTextFormat::FullWidthSelection, true);
+	selectionList.append(selection);
 }
 
 

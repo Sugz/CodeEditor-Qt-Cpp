@@ -1,10 +1,11 @@
 #pragma once
 
 #include <QFrame>
+#include <QTextEdit>
+#include <QTextCursor>
 
 class Editor;
 class FoldedTextAttr;
-class QTextCursor;
 enum class FoldType;
 
 struct Fold
@@ -43,6 +44,6 @@ private:
 	bool m_recalculateFolds;
 	void getFolds();
 	void updateFoldsOffset();
-	void setCursor(QTextCursor& cursor, int firstLine, unsigned int endLine = 0, bool endOfLine = false);
-	
+	void setCursor(QTextCursor& cursor, unsigned int firstLine, unsigned int endLine = 0, bool endOfLine = false, QTextCursor::MoveMode mode = QTextCursor::KeepAnchor);
+	void highlightEditorLines(QTextEdit::ExtraSelection&, QList<QTextEdit::ExtraSelection>&);
 };
