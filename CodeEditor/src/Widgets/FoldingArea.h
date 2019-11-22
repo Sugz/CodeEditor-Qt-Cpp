@@ -45,5 +45,5 @@ private:
 	void getFolds();
 	void updateFoldsOffset();
 	void setCursor(QTextCursor& cursor, unsigned int firstLine, unsigned int endLine = 0, bool endOfLine = false, QTextCursor::MoveMode mode = QTextCursor::KeepAnchor);
-	void highlightEditorLines(QTextEdit::ExtraSelection&, QList<QTextEdit::ExtraSelection>&);
+	void highlightEditorLines(QTextEdit::ExtraSelection&, QList<QTextEdit::ExtraSelection>&, Fold*);
 };
