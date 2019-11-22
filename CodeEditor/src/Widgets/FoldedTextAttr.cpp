@@ -53,19 +53,19 @@ void FoldedTextAttr::fold(QTextCursor cursor, Fold& fold)
 	switch (fold.foldType)
 	{
 	case FoldType::Function:
-		m_text = " { ... } ";
+		m_text = " { ... }  ";
 		break;
 	case FoldType::Include:
-		m_text = " #include ... ";
+		m_text = " #include ...  ";
 		break;
 	case FoldType::MultiLineComment:
-		m_text = " /* ... */ ";
+		m_text = " /* ... */  ";
 		break;
 	case FoldType::SingleLineComment:
-		m_text = " // ... ";
+		m_text = " // ...  ";
 		break;
 	case FoldType::Region:
-		m_text = " region ... ";
+		m_text = " region " + fold.text + "  ";
 		break;
 	default:
 		break;

@@ -47,6 +47,7 @@ void FoldingArea::mousePressEvent(QMouseEvent* e)
 				fold->closed = false;
 				fold->hovered = true;
 
+				// remove the folded lines from the list
 				for (int i = fold->start + 1; i <= fold->end - fold->start; i++)
 					m_foldedLines.removeAll(i);
 
@@ -66,12 +67,13 @@ void FoldingArea::mousePressEvent(QMouseEvent* e)
 				fold->closed = true;
 				fold->hovered = false;
 
+				// add the folded lines to the list
 				for (int i = fold->start + 1; i <= fold->end - fold->start; i++)
 					m_foldedLines.append(i);
 
+				// select the text to be fold
 				QTextEdit::ExtraSelection selection;
 				selection.cursor = m_editor->textCursor();
-
 				setCursor(selection.cursor, fold->start - fold->offset, fold->end - fold->start, true);
 
 				foldedHandler->fold(selection.cursor, *fold);
@@ -167,6 +169,12 @@ void FoldingArea::getFolds()
 			emptyLinesHeight += box.height();
 		}
 
+		else if (block.text().startsWith("#pragma region"))
+		{
+			++regionDepth;
+			
+		}
+
 		else if (block.text().startsWith("#include"))
 		{
 			if (!include)
@@ -183,8 +191,6 @@ void FoldingArea::getFolds()
 				hover.setWidth(sizeHint().width() - 8);
 
 				Fold* fold = new Fold;
-				/*fold->arrowRect = box;
-				fold->hoverRect = hover;*/
 				fold->baseArrowRect = box;
 				fold->baseHoverRect = hover;
 				fold->start = blockNumber;
@@ -209,8 +215,6 @@ void FoldingArea::getFolds()
 			}
 		}
 
-
-
 		else
 		{
 			include = false;
@@ -226,6 +230,28 @@ void FoldingArea::getFolds()
 	repaint();
 }
 
+
+Fold* FoldingArea::createFold(QRect& box, FoldType type, int blockNumber, QList<Fold*>& currentFolds)
+{
+	QRect hover = box;
+
+	box.setLeft(6);
+	box.setTop(box.top() + 3);
+	box.setWidth(12);
+	box.setHeight(12);
+
+	hover.setLeft(4);
+	hover.setWidth(sizeHint().width() - 8);
+
+	Fold* fold = new Fold;
+	fold->baseArrowRect = box;
+	fold->baseHoverRect = hover;
+	fold->start = blockNumber;
+	fold->end = blockNumber;
+	fold->foldType = type;
+
+	currentFolds.append(fold);
+}
 
 void FoldingArea::updateFoldsOffset()
 {

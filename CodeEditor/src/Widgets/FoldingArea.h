@@ -11,10 +11,12 @@ enum class FoldType;
 struct Fold
 {
 	bool closed = false, hovered = false, arrowHovered = false;
-	int start, end, offset, foldHeight;//, rectsOffset;
+	int start, end, offset, foldHeight;
 	QRect arrowRect, hoverRect, baseArrowRect, baseHoverRect;
 	FoldType foldType;
+	QString text;
 
+	// methode used to sort fold by their start attribute
 	static bool comparePtr(const Fold* a, const Fold* b) {
 		return ((*a).start < (*b).start);
 	}
@@ -43,6 +45,7 @@ private:
 	QList<int> m_foldedLines;
 	bool m_recalculateFolds;
 	void getFolds();
+	Fold* createFold(QRect&, FoldType, int, QList<Fold*>&);
 	void updateFoldsOffset();
 	void setCursor(QTextCursor& cursor, unsigned int firstLine, unsigned int endLine = 0, bool endOfLine = false, QTextCursor::MoveMode mode = QTextCursor::KeepAnchor);
 	void highlightEditorLines(QTextEdit::ExtraSelection&, QList<QTextEdit::ExtraSelection>&, Fold*);
