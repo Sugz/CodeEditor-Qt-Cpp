@@ -75,6 +75,10 @@ void FoldingArea::mousePressEvent(QMouseEvent* e)
 				setCursor(selection.cursor, fold->start - fold->offset, fold->end - fold->start, true);
 
 				foldedHandler->fold(selection.cursor, *fold);
+
+				// dehilight editor line
+				QList<QTextEdit::ExtraSelection> selectionsList;
+				m_editor->setExtraSelections(selectionsList);
 			}
 
 			updateFoldsOffset();
@@ -359,6 +363,3 @@ void FoldingArea::highlightEditorLines(QTextEdit::ExtraSelection& selection, QLi
 	selection.format.setProperty(QTextFormat::FullWidthSelection, true);
 	selectionList.append(selection);
 }
-
-
-//TODO: to detect which fold / unfold box is clicked, each time i draw a box, store it's rect. Then on mouse press, loop over each box to know if it contains the event pos
